@@ -1,6 +1,4 @@
-# LP1-2022.1-Dnadatabase
-
-# DNA Profiler
+# Crime and Dna Database
 
 ### Table of Contents
 1. [Introdução](#1-introdução)
@@ -13,13 +11,22 @@
 
 #  1. Introdução
 
-Neste trabalho iremos desenvolver um programa de processamento de DNA. O programa, chamado **dna_profiler**[^1], deve receber duas entradas, representando 
-dois arquivoss: o primeiro, será um arquivo _[CSV](https://en.wikipedia.org/wiki/Comma-separated_values)_ que contém uma base de dados de DNA; o segundo é um 
-arquivo de texto contendo sequencia de DNA que deve ser verficada. O seu programa deverá então, criar um perfil de DNA a partir da entrada e verificar se 
-esse perfil está presente na base de dados. Em caso positivo, seu programa deverá imprimir na saída o nome da pessoa que tem o perfil encontrado, caso 
-contrário o programa deverá imprimir _"no match found"_.
+Neste trabalho iremos desenvolver um programa de processamento de DNA. O programa, chamado **crime_n_dna_db**, que será responsável por guardar e processar
+informações de sequencias de DNA especialmente para aplicações relacionadas com processamento de perfis de DNA associados à suspeitos e vítimas em crimes.
 
-[^1]: This assignment is a copy (with a few adaptations) of a programming project that may be found [here](http://nifty.stanford.edu/2020/dna/).
+O programa deverá fazer as seguintes funções:
+1. Armazenar informações de DNA
+  1. Informações que são adicionadas em tempo de execução
+  2. Informações que são adicionadas na inicialização do programa
+2. Cadastrar informações de cenas de crimes
+  1. Informaçoes que são adicionadas em tempo de execução
+  2. Informações que são carregadas na inicialização do programa
+  3. Informações de DNA que aparecem em uma mesma cena de crime devem ser "linkadas"
+3. Realizar consultas no banco de dados
+
+Na inicialização o programa receberá como entrada dois arquivos CSV, o primeiro representando as informações de DNA cadastradas e o segundo representando
+as cenas de crime cadastradas. O programa deverá carregar os dois arquivos e inicializar a base de dados. Aós o carregamento dos arquivos iniciais o programa
+deverá receber do usuário comandos para realizar o restante das funcionalidades listadas, a lista de comandos a ser implementada será descrita à seguir.
 
 # 2. Background
 
@@ -37,131 +44,121 @@ por exemplo, Alice o STR `AGAT` repetido 4 vezes em seu DNA, enquanto bob tem o 
 
 <img src="./pics/ALICE_BOB_DNA.png" width="350">
 
-Se usarmos múltimos STRs, ao invés de apenas 1, podemos aumentar a acurácia do perfil. Se a probabilidade de duas pessoas terem o mesmo número de repetições de um STR
+Dessa forma podemos usar os STRs para realizar uma "comparação" entre os DNAs de Bob e Alice, de forma que é possível distinguir os dois. Se usarmos múltimos STRs, 
+ao invés de apenas 1, podemos aumentar a acurácia do perfil. Se a probabilidade de duas pessoas terem o mesmo número de repetições de um STR
 é de 5%, e os analistas usam 10 diferentes STR, a problabilidade de duas amostras de DNA serem iguais, apenas por sorte é de 1 em um quadrilhão (assumindo que cada
 STR é independente um do outro). Assim se duas amostras de DNA tem o mesmo número de repetições de STRs, o analista é bem confiante que o DNA vem da mesma pessoa. 
 O [CODIS](https://www.fbi.gov/services/laboratory/biometric-analysis/codis/codis-and-ndis-fact-sheet), a base de dados do FBI, usa 20 STRs diferentes como parte
 da análise de amostras de DNA.
 
-Na forma mais simples, você pode imaginar que uma base de dados de DNA formatada em um _CSV_, onde cada linha corresponde a um indivíduo e cada coluna corresponde a
-um STR particular.
-```
-name,AGAT,AATG,TATC
-Alice,28,42,14
-Bob,17,22,19
-Charlie,36,18,25
-```
+Dessa forma os investigadores podem realizar coletas de traços de DNA em cenas de crimes, e realizar a operação de "matching" onde as informações de DNA são processadas
+e comparadas com um conjunto conhecido de STRs que ficam cadastrados em um banco de dados especial. Embora possa parecer simples pela descrição, a informação
+de DNA é muito vasta e apenas processar STRs para uma pessoa pode demorar uma quantidade relevante de tempo. Para atacar esse problema os investigadores usam segmentos
+conhecidos do DNA que são selecionados especialmente para essa tarefa.
 
-Pelos dados acima, Alice tem a sequencia `AGAT` repetida 28 vezes em algum lugar de seu DNA, bem como as squencias `AATG` e `TATC` repetidas 42 e 14 vezes, 
-respectivamente. De forma similar as informações para Bob e Charlie contém as repetições das sequencias (17, 22 e 19 para bob e 36, 18 e 25 para Charlie).
 
-Dessa forma, dada uma sequencia de DNA, como você identificaria quem é dono? Bem, imagine que você busque na sequencia de DNA pela sequencia mais longa de `AGAT`
-e encontrar que ela tem tamanho 17 (uma sequencia de 17 `AGAT` consecutivos). Depois, voce repete o processo para `AATG` e descobre que ele se repete 22 vezes, por fim
-`TATC` se repete 19 vezes. É bem provavel que este DNA pertença à Bob. Também é possível que depois que fizermos os procedimentos, ainda assim ninguem na base de
-dados bate com as características encontradas, nesse caso você tem um "no match".
+# 3. Entradas
 
-Na prática, os analistas sabem as localizações em que uma determinada STR vai ser encontrada no DNA, assim eles podem realizar buscas localizadas em apenas uma
-porção do DNA ao invés de analisar toda a estrutura, porém esse detalhe será ignorado por nós neste trabalho.
+O programa receberá duas entradas, inicialmente, um arquivo CSV contendo as bases de DNA e outro arquivo CSV contendo as informações das cenas de crime. O programa
+deve então ficar esperando por comandos do usuário para realizar operações nas bases de dados, não há comando de finalização o programa termina quando EOF é lido
+ou quando o usário digitar <kbd>Ctrl</kbd> + <kbd>z</kbd>.
 
-Assim, seu trabalho é escrever um sistema que receberá uma sequencia de DNA e uma base de dados contendo alguns perfis de indivíduos e verificar, se o DNA recebido
-está presente na base ou não!.
+## 3.1 Arquivos CSV
 
-# 3. Entrada
+Um exemplo do arquivo de base de dados de dna pode ser encontrado em [./data/dnadb.csv](./data/dnadb.csv). Cada linha do arquivo representa as seguintes informações, 
+separadas por vírgula:
+- Identificador: Uma string com ou sem espaços que define um identificador para aquela entrada de DNA.
+- Raw Data: Uma informação de DNA que é definida por uma string composta por A, C, G ou T.
+- STRS: Uma lista composta pelos STRs processados naquele DNA junto com seus valores no formato STR:NUMERO, a lista é separada por espaços
 
-Você deverá ler dois arquivos de texto, um representado no formato CSV contendo a base de dados e outro contendo uma sequencia de DNA de um indivíduo que queremos
-identificar.
+Um exemplo do arquivo de base de dados de cenas do crime pode ser encontrado em [./data/crimedb.csv](./data/crimedb.csv). Cada linha do arquivo tem os seguintes 
+campos, separados por vírgula:
+- Identificador: Uma string com ou sem espaços que define um identificador para aquela cena de crime.
+- DNA Samples: Um conjunto de DNAs que foram encontrados naquela cena de crime separados por espaço
 
-## 3.1 A base de dados de DNA
+## 3.2 Comandos de manipulação das bases
 
-A base de dados é basicamente uma tabela no seguinte formato:
+Após o carregamento das bases de dados o programa deverá receber e interpretar os comandos listados abaixo:
 
-1. Primeira linha: contém os nomes das colunas separadas por ','. A primeira coluna é sempre "name" seguida por uma quantidade 'n' de STRs que devem ser
-considerados ao analisar as sequencias de entrada.
-2. Uma quantidade _não determinada_ de linhas, cada uma contendo o nome de um indivíduo e seu perfil de DNA correspondente, na forma do número máximo que
-uma sequencia de STRs repetidos aparecem em seu DNA.
+### Comandos relacionados à DNA
 
-A entrada, apresentada no inico deste documento representa a tabela abaixo:
+- **add_dna \<identificador_dna\> arquivo.csv**: Adiciona uma informação de dna no banco de dados. O identificador precisa ser único no banco, o arquivo csv deve conter o
+dado relativo ao _Raw Data_, ou seja apenas uma string composta por A, C, G, ou T;
+  - Caso de erro: identificador inválido (duplicado); arquivo inexistente.
+- **del_dna \<identificador_dna\>**: Remove uma informação de DNA do banco de dados.
+  - Caso de erro: identificador inválido (não encontrado).
+- **proc_dna_str \<identificador_dna\> str**: Processa um STR de um DNA representado por \<identificador\>. As informações do
+STR, como sua string e seu valor calculado devem ser salvas na informação de DNA correspondente.
+  - Caso de erro: identificador inválido (não encontrado); str com tamanho diferente de 4.
+- **del_dna_str \<identificador_dna\> str**: Remove uma informação de STR no DNA do banco de dados.
+  - Caso de erro: identificador inválido (não encontrado); str inválido (não encontrado).
 
-| name | `AGAT` | `AATG` | `TATC`
-|:--------:| -------------:|-------------:|-------------:|
-| Alice | 28 | 42 | 14
-| Bob | 17 | 22 | 19
-| Charlie | 36 | 18 | 25
+### Comandos Relacionados à Cenas de Crime
 
-## 3.2 A sequencia de DNA do indivíduo
+- **add_cena \<identificador_cena\> arquivo.csv**: Adiciona uma cena de crime ao banco. O identificador precisa ser único no banco, o arquivo csv deve conter informações
+relativas aos DNA's presentes cena do crime (separados por ,);
+  - Caso de erro: identificador inválido (duplicado); arquivo inexistente.
+- **del_cena \<identificador_cena\>**: Remove uma informação de cena do crime do banco de dados.
+  - Caso de erro: identificador inválido (não encontrado).
 
-O segundo arquivo representa o segmento de DNA do indivíduo, que deve ser analisado:
+### Comandos de consulta
 
-Este é o segmento do DNA de Alice:
-> AGACGGGTTACCATGACTATCTATCTATCTATCTATCTATCTATCTATCACGTACGTACGTATCGAGATAGATAGATAGATAGATCCTCGACTTCGATCGCAATGAATGCCAATAGACAAAA
+- **get_dna_strs \<identificador_dna\>**: Imprime os STRs correspondentes à um DNA passado
+  - Caso de erro: identificador inválido (não encontrado).
+- **get_involved \<identificador_cena\>**: Imprie os possíveis envolvidos em uma cena do crime usando o Perfil de DNA dos DNAs da cena como parâmetro para encontrar
+os possíveis envolvidos.
+  - Caso de erro: identificador inválido (não encontrado).
+- **get_scene_involved \<identificador_dna\>**: Imprime todas as cenas de crime em que o DNA passado é encontrado.
+  - Caso de erro: identificador inválido (não encontrado).
+- **get_dna_involved \<identificador_dna\>**: Imprime todos os identificadores de DNA que estão presentes em alguma cena do crime que o DNA passado é envolvido.
+  - Caso de erro: identificador inválido (não encontrado).
 
-Este é o de Bob:
-> AACCCTGCGCGCGCGCGATCTATCTATCTATCTATCCAGCATTAGCTAGCATCAAGATAGATAGATGAATTTCGAAATGAATGAATGAATGAATGAATGAATG
+### Validação dos comandos
 
-E este é o de Charlie:
-> CCAGATAGATAGATAGATAGATAGATGTCACAGGGATGCTGAGGGCTGCTTCGTACGTACTCCTGATTTCGGGGATCGCTGACACTAATGCGTGCGAGCGGATCGATCTCTATCTATCTATCTATCTATCCTATAGCATAGACATCCAGATAGATAGATC
-
-Claro que nós já sabemos quem é o dono das sequencias mostradas à cima, mas seu programa não sabe. Por isos o programa deve receber o DNA como entrada
-e procurar pela sequencia mais longa com consecutivos STRs de acordo com nossa base de dados.
-
-Os arquivos da base de dados e dos segmentos de DNA estão disponíveis [aqui](data).
+Seu programa deve validar os comandos em cada um dos casos de erro listados neles, bem como verificar se o comando existe e se a **lista de argumentos está correta**.
 
 # 4. Interface
 
-Seu programa, chamado `dna_profiler`, deve ler da linha de comando da seguinte forma:
+Seu programa, chamado `crime_n_dna_db`, deve ler da linha de comando da seguinte forma:
 ```
-% ./dna_profiler
-Usage: dna_profiler -d <database_file> -s <dna_sequence_file>
-  Where the arguments are:
-      <database_file>     The DNA database file.
-      <dna_sequence_file> The DNA sequence file you wish to identify (find a match for).
-```
-
-# 5. Execução
-
-Depois de receber os arquivos pelo terminal, o programa deve: (1) abrir o arquivo `.csv` e ler seu conteúdo, (2) abrir o arquivo de DNA e ler seu conteúdo. Depois
-disso o programa deve realizar o processamento do DNA recebido e procurar se o perfil resultante do processamento está presente na base de dados. Caso o perfil
-identifique alguém da base de dados, o programa deve imprimir o nome da pessoa, caso contrário o programa deverá imprimir "no match found".
-
-Abaixo seguem alguns passos de "alto nível" que podem ser usados por você para resolver o problema:
-
-```
-[1] Leia a base de dados e armazene as informações em um Objeto apropriado.
-[2] Leia a sequencia de DNA e armazene em __outro__ objeto apropriado.
-[3] Gere o perfil da sequencia de DNA carregada.
-[4] Procure pelo pefil gerado na base de dados.
-	[4.a] Se o indivíduo for encontrado, imprima seu nome e mostre os STRs.
-	[4.b] Caso contrário imprima que foi um "no match"
+% ./crime_n_dna_db
+Usage: crime_n_dna_db -d <dnadb_file> -s <crimedb_file>
+  Onde os argumentos são:
+      <dnadb_file>    A base de dados contendo DNAs já cadastrados no banco.
+      <crimedb_file>  A base de dados contendo cenas de crime já existentes no banco.
 ```
 
-# 6. Modelagem do Problema
+O restante da execução do programa é a leitura dos comandos vindos do usuário e a saída no terminal correspondente a cada comando. A forma como a saída
+será apresentada pode ser escolhida por você.
+
+# 5. Modelagem do Problema
 
 Você pode criar quantas classes achar necessário, mas faça ao menos 3:
 
-+ Uma classe para armazernar a Base de dados e realizar busca de perfis.
-+ Uma classe para armazenar a informação de DNA de um indivíduo, bem como realizar o Perfil com base em algum STR (ou conjunto de STR)
-+ Uma classe para centralizar as saídas para o usuário
++ Uma classe para armazernar as informações relativas ao DNA de uma pessoa bem como realizar o processamento de STRs.
++ Uma classe para armazenar as informações relativas à cenas de crime (de preferencia referenciando a classe anterior)
++ Uma classe para realizar o processamento dos comandos
 
-# 7. Saída
+# 6. Dados para testes
 
-A saída do programa deve ser da seguinte forma no caso de um perfil ser encontrado na base:
+Um dos problemas que você irá encontrar aqui é como testar seu programa, uma boa base de dados é a base do [National Institute of Standards and Technology (Nist)](https://strbase.nist.gov/seq_info.htm). Nesta base você encontra uma tabela com uma coluna denominada "Locus", que é a parte do dna onde aquele str é encontrado. Clicando nos links você é levado
+à uma página contendo a informação de DNA com o STR em questão destacado.
 
-<img src="./pics/output1.png" width="350">
+Outra forma de encontrar dados é usando a [National Library of Medicine](https://www.ncbi.nlm.nih.gov/), você pode usar os _loci_ da base anterior e na página seguinte procurar o link bioproject, esse link te leva a uma outra página onde você clica no link correspondente à _Nucleotide (Genomic DNA)_. Nessa página você encontrará várias amostras de DNA para
+poder usar no trabalho.
 
-Se for um "no match":
+Outra forma (não aconselhada), é você usar alguma função aleatória para gerar os DNAs, eu realmente não aconselho essa direção uma vez que os dados podem não fazer muito sentido.
 
-<img src="./pics/output2.png" width="350">
+# 7. Método de Testes
 
-A saída deve ser exatamente como mostrada nas imagens (com cores e tudo!)
+Neste trabalho o onus de testar e mostrar as implementações das funcionalidades é totalmente seu! Invista em criar testes válidos e em automatizar o processo de testes uma vez
+que você irá precisar demonstrar a implementação dos comandos, casos de erro e as funcionalidades.
+
+Tente combinar os comandos e principalmente tente verificar os casos relacionados aos _Deletes_, por exemplo: O que ocorre se eu deleto um DNA que está envolvido em uma cena e depois chamo o comando **get_involved**? 
 
 ## Authorship
 
-**Brian Yu, Harvard University,  [brian@cs.harvard.edu](http://nifty.stanford.edu/2020/dna/brian@cs.harvard.edu)**
+**This assignment is inspired by the DNA Profiler assignment from Brian Yu, Harvard University, [brian@cs.harvard.edu](http://nifty.stanford.edu/2020/dna/brian@cs.harvard.edu)**
 
-**David J. Malan, Harvard University,  [malan@harvard.edu](mailto:malan@harvard.edu)**
-
-
-**Adaptation: Selan R. Santos, [selan@dimap.ufrn.br](mailto:selan@dimap.ufrn.br)**
-
-**Translation to Pt-Br and Further Adaptation: Julio Melo, [julio@imd.ufrn.br](mailto:julio@imd.ufrn.br)**
+**Autor: Julio Melo, [julio@imd.ufrn.br](mailto:julio@imd.ufrn.br)**
 
