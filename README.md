@@ -16,12 +16,12 @@ informações de sequencias de DNA especialmente para aplicações relacionadas 
 
 O programa deverá fazer as seguintes funções:
 1. Armazenar informações de DNA
-  1. Informações que são adicionadas em tempo de execução
-  2. Informações que são adicionadas na inicialização do programa
+  - Informações que são adicionadas em tempo de execução
+  - Informações que são adicionadas na inicialização do programa
 2. Cadastrar informações de cenas de crimes
-  1. Informaçoes que são adicionadas em tempo de execução
-  2. Informações que são carregadas na inicialização do programa
-  3. Informações de DNA que aparecem em uma mesma cena de crime devem ser "linkadas"
+  - Informaçoes que são adicionadas em tempo de execução
+  - Informações que são carregadas na inicialização do programa
+  - Informações de DNA que aparecem em uma mesma cena de crime devem ser "linkadas"
 3. Realizar consultas no banco de dados
 
 Na inicialização o programa receberá como entrada dois arquivos CSV, o primeiro representando as informações de DNA cadastradas e o segundo representando
