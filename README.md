@@ -3,11 +3,11 @@
 ### Table of Contents
 1. [Introdução](#1-introdução)
 2. [Background](#2-background)
-3. [Entrada](#3-entrada)
+3. [Entradas](#3-entradas)
 4. [Interface](#4-interface)
-5. [Execução](#5-execução)
-6. [Modelagem do Problema](#6-modelagem-do-problema)
-7. [Saída](#7-saída)
+5. [Modelagem do Problema](#5-modelagem-do-problema)
+6. [Dados para testes](#6-dados-para-testes)
+7. [Método de Testes](#7-método-de-testes)
 
 #  1. Introdução
 
