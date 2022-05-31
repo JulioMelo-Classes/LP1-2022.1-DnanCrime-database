@@ -95,8 +95,8 @@ STR, como sua string e seu valor calculado devem ser salvas na informação de D
 
 ### Comandos Relacionados à Cenas de Crime
 
-- **add_cena \<identificador_cena\> arquivo.csv**: Adiciona uma cena de crime ao banco. O identificador precisa ser único no banco, o arquivo csv deve conter informações
-relativas aos DNA's presentes cena do crime (separados por ,);
+- **add_cena \<identificador_cena\> arquivo.csv**: Adiciona uma cena de crime ao banco. O identificador precisa ser único no banco, o arquivo csv deve conter informações de
+_Raw Data_ relativas aos DNA's presentes cena do crime (separados por vírgula);
   - Caso de erro: identificador inválido (duplicado); arquivo inexistente.
 - **del_cena \<identificador_cena\>**: Remove uma informação de cena do crime do banco de dados.
   - Caso de erro: identificador inválido (não encontrado).
@@ -144,10 +144,17 @@ Você pode criar quantas classes achar necessário, mas faça ao menos 3:
 Um dos problemas que você irá encontrar aqui é como testar seu programa, uma boa base de dados é a base do [National Institute of Standards and Technology (Nist)](https://strbase.nist.gov/seq_info.htm). Nesta base você encontra uma tabela com uma coluna denominada "Locus", que é a parte do dna onde aquele str é encontrado. Clicando nos links você é levado
 à uma página contendo a informação de DNA com o STR em questão destacado.
 
-Outra forma de encontrar dados é usando a [National Library of Medicine](https://www.ncbi.nlm.nih.gov/), você pode usar os _loci_ da base anterior e na página seguinte procurar o link bioproject, esse link te leva a uma outra página onde você clica no link correspondente à _Nucleotide (Genomic DNA)_. Nessa página você encontrará várias amostras de DNA para
-poder usar no trabalho.
+Outra forma de encontrar dados é usando a [National Library of Medicine](https://www.ncbi.nlm.nih.gov/), nos links abaixo você encontra algumas páginas com amostras:
 
-Outra forma (não aconselhada), é você usar alguma função aleatória para gerar os DNAs, eu realmente não aconselho essa direção uma vez que os dados podem não fazer muito sentido.
+1. [CSF1PO](https://www.ncbi.nlm.nih.gov/nuccore?term=380561%5BBioProject%5D)
+2. [D2S1338](https://www.ncbi.nlm.nih.gov/nuccore?term=380556%5BBioProject%5D)
+3. [D3S1358](https://www.ncbi.nlm.nih.gov/nuccore/?term=D3S1358)
+4. [D5S818](https://www.ncbi.nlm.nih.gov/nuccore/?term=D5S818)
+5. [D8S1179](https://www.ncbi.nlm.nih.gov/nuccore/?term=D8S1179)
+
+Toso esses links foram encontrados usando a página da [National Library of Medicine (nucleotide)](https://www.ncbi.nlm.nih.gov/nuccore/), buscando pelo locus contido na página do Nist. Veja que nem todos os loci possuem exemplos de nucleotídeos para podermos analisar, embora existam bastante exemplos em alguns casos.
+
+Outra forma (não aconselhada), é você usar alguma função aleatória para gerar os DNAs, eu realmente não aconselho essa direção uma vez que os dados podem não fazer muito sentido. Por fim você também pode usar STRs não padronizados (não obrigatoriamente usados pelo Nist), como forma de testar seu algoritmo.
 
 # 7. Método de Testes
 
