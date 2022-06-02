@@ -61,7 +61,7 @@ conhecidos do DNA que são selecionados especialmente para essa tarefa.
 
 O programa receberá duas entradas, inicialmente, um arquivo CSV contendo as bases de DNA e outro arquivo CSV contendo as informações das cenas de crime. O programa
 deve então ficar esperando por comandos do usuário para realizar operações nas bases de dados, não há comando de finalização o programa termina quando EOF é lido
-ou quando o usário digitar <kbd>Ctrl</kbd> + <kbd>z</kbd>.
+ou quando o usário digitar <kbd>Ctrl</kbd> + <kbd>d</kbd>.
 
 ## 3.1 Arquivos CSV
 
